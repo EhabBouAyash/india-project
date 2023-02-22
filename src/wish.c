@@ -1,6 +1,9 @@
 #include <limits.h>
 #include "wish.h"
 
+
+
+
 int main(int argc, char *argv[])
 {
   // These two lines make the macOS C compiler happy.
@@ -22,5 +25,11 @@ int main(int argc, char *argv[])
   if(line)
     free(line);
   
+
+  //testing wish_parse.c
+  char *s = malloc(WISH_MAX_INPUT);
+  strcpy(s,"This is a string\\n\\a this is another\\n this yet another\\n");
+
+  s = wish_unquote(s);
   return EXIT_SUCCESS;
 }
