@@ -6,7 +6,7 @@ char *wish_unquote(char *s) {
     int j=0; 
     char result; 
     char* copy = malloc(2*(int)strlen(s));
-    for (int i=0; i<strlen(s);i++){
+    for (int i=0; i<(int)strlen(s);i++){
       if (s[i]=='\\'){
         char temp = s[i+1];
         switch (temp){
@@ -25,12 +25,22 @@ char *wish_unquote(char *s) {
           case 'a':
             result = '\a';
             break;
-          case 'e':
-            result = '\e';
-            break;
           case 'f':
             result = '\f';
             break;
+          case 'b':
+            result = '\b';
+            break;
+          case '?':
+            result = '\?';
+            break;
+          case '"':
+            result = '\"';
+            break;
+          case '\\':
+            result = '\\';
+            break;
+          
           default:
             result = temp;
         }

@@ -33,6 +33,7 @@ char *wish_read_line(FILE *in) {
       return line;
     }
   }
+  
 
   return NULL;
 }
@@ -52,6 +53,7 @@ int wish_read_config(char *fname, int ok_if_missing) {
   // Read the file line by line
   while(!feof(config)) {
     char *line = wish_read_line(config);
+    wish_parse_command(line);
     if(line) {
 #ifdef DEBUG
       fprintf(stderr, "%s\n", line); // Only for debugging

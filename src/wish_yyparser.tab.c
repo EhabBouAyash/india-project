@@ -520,8 +520,8 @@ static const yytype_int8 yyrline[] =
 {
        0,    29,    29,    30,    31,    32,    33,    34,    35,    38,
       39,    42,    43,    46,    47,    50,    51,    54,    55,    58,
-      59,    62,    63,    64,    66,    67,    68,    71,    72,    75,
-      78,    79,    82
+      59,    62,    63,    64,    66,    67,    68,    72,    73,    76,
+      79,    80,    83
 };
 #endif
 
@@ -1307,7 +1307,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 84 "wish_yyparser.y"
+#line 85 "wish_yyparser.y"
 
 
 /* This section is empty */
