@@ -14,7 +14,7 @@ char *wish_read_line(FILE *in) {
 
     // Clean the rest of the line
     int c = fgetc(in);
-    while (c != '\n' && c != EOF)
+    while (c != '\n' && c != '\r' && c != EOF)
       c = fgetc(in);
     return NULL;
   }
@@ -25,15 +25,14 @@ char *wish_read_line(FILE *in) {
   // Check the line for being blank
   for(size_t i = 0; i < strlen(buffer); ++i) {
     if(!isspace(buffer[i])) {
-      // Alloate memory
+      // Allocate memory
       char *line = malloc(strlen(buffer) + 1);
       if (!line) // Too bad
 	abort();
-      strcat(line, buffer);
+      strcpy(line, buffer);
       return line;
     }
   }
-  
 
   return NULL;
 }
@@ -53,11 +52,11 @@ int wish_read_config(char *fname, int ok_if_missing) {
   // Read the file line by line
   while(!feof(config)) {
     char *line = wish_read_line(config);
-    wish_parse_command(line);
     if(line) {
 #ifdef DEBUG
-      fprintf(stderr, "%s\n", line); // Only for debugging
+      fprintf(stderr, "DEBUG: %s\n", line); // Only for debugging
 #endif
+      wish_parse_command(line);
       free(line);
     }
   }
