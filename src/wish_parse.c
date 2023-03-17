@@ -4,7 +4,8 @@
 char *wish_unquote(char *s) {
 
     int j=0; 
-    char result; 
+    char result;
+    // DZ: The news string is SHORTER, why double the size?
     char* copy = malloc(2*(int)strlen(s));
     for (int i=0; i<(int)strlen(s);i++){
       if (s[i]=='\\'){
@@ -52,7 +53,9 @@ char *wish_unquote(char *s) {
       }
       
     }
+    // DZ: Must null-terminate `copy`
     printf("%s\n",copy);
+    // DZ - ???
     s[0] = '\0';
     strcpy(s,copy);
     return s; //MODIFY 

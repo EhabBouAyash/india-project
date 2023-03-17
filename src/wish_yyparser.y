@@ -32,7 +32,7 @@ cmdline:
 | arg YY_SET arg 
 | YY_PWD          
 | YY_CD arg      
-| YY_EXIT        { /* ... */ }
+| YY_EXIT        {/* DZ: Not done */  /* ... */ }
 
 pipe: 
   YY_BAR out_prog  
@@ -65,8 +65,9 @@ any_redir:
 
 in_redir:   YY_LESS arg    
 out1_redir: YY_MORE arg    
-out2_redir: YY_MOREMORE arg 
-YY_EXIT { wish_exit=1; } 
+out2_redir: YY_MOREMORE arg
+/* Wrong place */
+/*YY_EXIT { wish_exit=1; } */ 
 bg_mode: 
 %empty         
 | YY_AMP

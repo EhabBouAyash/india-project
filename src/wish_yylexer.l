@@ -6,8 +6,9 @@ extern int yylex(void);
 extern int yyparse(void);
 #endif
 
-char *wish_safe_getenv(char *s);
-char *wish_unquote(char *s);
+//DZ: Duplicate declaration
+//char *wish_safe_getenv(char *s);
+//char *wish_unquote(char *s);
 %}
 
 %option noyywrap

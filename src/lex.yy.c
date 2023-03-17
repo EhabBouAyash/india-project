@@ -1,5 +1,5 @@
 
-#line 2 "lex.yy.c"
+#line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -484,10 +484,11 @@ extern int yylex(void);
 extern int yyparse(void);
 #endif
 
-char *wish_safe_getenv(char *s);
-char *wish_unquote(char *s);
-#line 489 "lex.yy.c"
-#line 490 "lex.yy.c"
+//DZ: Duplicate declaration
+//char *wish_safe_getenv(char *s);
+//char *wish_unquote(char *s);
+#line 491 "lex.yy.c"
+#line 492 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -704,9 +705,9 @@ YY_DECL
 		}
 
 	{
-#line 23 "wish_yylexer.l"
+#line 24 "wish_yylexer.l"
 
-#line 709 "lex.yy.c"
+#line 711 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -766,104 +767,104 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 24 "wish_yylexer.l"
+#line 25 "wish_yylexer.l"
 { /* comment */ }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 26 "wish_yylexer.l"
+#line 27 "wish_yylexer.l"
 { return YY_EXIT; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 27 "wish_yylexer.l"
+#line 28 "wish_yylexer.l"
 { return YY_PWD;  }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 28 "wish_yylexer.l"
+#line 29 "wish_yylexer.l"
 { return YY_CD;   }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 30 "wish_yylexer.l"
+#line 31 "wish_yylexer.l"
 { yylval.s = strdup(wish_safe_getenv(yytext + 1));
                   return YY_TOK; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 32 "wish_yylexer.l"
+#line 33 "wish_yylexer.l"
 { yylval.s = strdup(wish_unquote(yytext));
                   return YY_TOK; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 34 "wish_yylexer.l"
+#line 35 "wish_yylexer.l"
 { yytext[strlen(yytext) - 1] = 0;
                   yylval.s = strdup(yytext + 1);
                   return YY_TOK; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 37 "wish_yylexer.l"
+#line 38 "wish_yylexer.l"
 { yytext[strlen(yytext) - 1] = 0;
                   yylval.s = strdup(wish_unquote(yytext + 1));
                   return YY_TOK; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 41 "wish_yylexer.l"
+#line 42 "wish_yylexer.l"
 { return YY_LESS;     }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 42 "wish_yylexer.l"
+#line 43 "wish_yylexer.l"
 { return YY_MORE;     }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 43 "wish_yylexer.l"
+#line 44 "wish_yylexer.l"
 { return YY_MOREMORE; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 44 "wish_yylexer.l"
+#line 45 "wish_yylexer.l"
 { return YY_AMP;      }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 45 "wish_yylexer.l"
+#line 46 "wish_yylexer.l"
 { return YY_BAR;      }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 46 "wish_yylexer.l"
+#line 47 "wish_yylexer.l"
 { return YY_SET;      }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 48 "wish_yylexer.l"
+#line 49 "wish_yylexer.l"
 { fprintf(stderr, "Unsupported command: %c\n", yytext[0]);
                   return YY_UNKNOWN;}
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 50 "wish_yylexer.l"
+#line 51 "wish_yylexer.l"
 { /* whitespaces */ }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 52 "wish_yylexer.l"
+#line 53 "wish_yylexer.l"
 { fprintf(stderr, "Illegal character: %c\n", yytext[0]);
                   return YY_UNKNOWN; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 55 "wish_yylexer.l"
+#line 56 "wish_yylexer.l"
 ECHO;
 	YY_BREAK
-#line 866 "lex.yy.c"
+#line 868 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1868,7 +1869,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 55 "wish_yylexer.l"
+#line 56 "wish_yylexer.l"
 
 
 // The function returns 0 if there are no syntax errors and 1, otherwise
