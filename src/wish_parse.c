@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include "wish.h"
 
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
+
 // https://en.wikipedia.org/wiki/Escape_sequences_in_C#Table_of_escape_sequences
 char *wish_unquote(char * s) {
   int i, j;
@@ -48,7 +55,7 @@ prog_t *last_exe(prog_t *exe) {
 arglist_t add_to_arglist(arglist_t al, char *arg)
 {
   al.size++;      // Increase argument array size
-  al.args = realloc(al.args, sizeof(char*) * al.size); // Add storage
+  al.args = super_realloc(al.args, sizeof(char*) * al.size); // Add storage
   al.args[al.size - 1] = arg;  // Add the last element
   return al;
 }
@@ -56,7 +63,7 @@ arglist_t add_to_arglist(arglist_t al, char *arg)
 arglist_t create_arglist(char *arg)
 {
   arglist_t al;
-  al.args = malloc(sizeof(char*)); // New argument array
+  al.args = super_malloc(sizeof(char*)); // New argument array
   al.args[0] = arg; // Its first element
   al.size = 1;
   return al;
@@ -64,7 +71,7 @@ arglist_t create_arglist(char *arg)
 
 prog_t *create_program(arglist_t al)
 {
-  prog_t *p = malloc(sizeof(prog_t));
+  prog_t *p = super_malloc(sizeof(prog_t));
   p->args = al;
   p->redirection.in = p->redirection.out1 = p->redirection.out2 = NULL;
   p->prev = NULL;
@@ -73,37 +80,45 @@ prog_t *create_program(arglist_t al)
 
 int spawn(prog_t *exe, int bgmode /* Disregard! */)
 {
-  /*
-    prog_t:
-      arglist_t args; // Arguments, including the program name
-      redirection_t redirection; // Disregard!
-      struct prog *prev; // Disregard!
-  */
-  
-  int status = 0;
-  fputs("\nSYSTEM GHOST: Hi, I am `spawn()`.\nSYSTEM GHOST: I am the workhorse of the shell, implement me ASAP!\n",
-	stderr);
-  /*
-    1. Fork a child process.
+  pid_t pid; 
+  int status=0;
+  // Fork a child process
+    pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        return 1;
+    }
+    else if (pid == 0) {  // Child process
+        // Add another element to the array of arguments with realloc()
+        exe->args.args = super_realloc(exe->args.args, (exe->args.size + 1) * sizeof(char *));
+        exe->args.args[exe->args.size] = NULL;
 
-    2. In the child process, add another element to the array of
-    arguments with realloc() and set that element to NULL. This is the
-    format expected by system call execvp().
+        // Start new program as defined by exe->args.args[0]
+        if (execvp(exe->args.args[0], exe->args.args) == -1) {
+            perror("execvp");
+            exit(0);
+        }
+    }
+    else {  // Parent process
+        // Free any previously allocated memory
+        free_memory(exe, NULL);
 
-    3. In the child process, start new program, as defined by
-    exe->args.args[0]. If execvp() fails, the function shall exit(0).
-    Remember, only the child terminates, the parent keeps running!
-    
-    4. In the parent process, free any previously allocated memory by
-    calling void free_memory(prog_t *exe, prog_t *pipe). Do not
-    implement this function now, just call its do-nothing skeleton.
-    You may want to add some printout to the body of the function to
-    make sure that it was actually called.  
+        if (bgmode) {  // Background mode
+            printf("Not waiting for my child :((");
+        }
+        else {  // Foreground mode
+            waitpid(pid, &status, 0);
+        }
 
-    5. Report any errors with perror() and return 1 in the parent if
-    there was an error or 0, otherwise.
-  */
-  return status;
+        // Check for errors
+        if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+            return 0;
+        }
+        else {
+            return 1;
+        }
+    }
+	return status; 
 }
 
 void free_memory(prog_t *exe, prog_t *pipe)

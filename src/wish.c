@@ -1,5 +1,8 @@
 #include <limits.h>
 #include "wish.h"
+#include <signal.h>
+#include <string.h>
+#include <unistd.h>
 
 int wish_exit = 0;
 
@@ -8,8 +11,18 @@ static void refuse_to_die(int sig)
   fputs("Type exit to exit the shell.\n", stderr);
 }
 
-static void prevent_interruption() {
-  fputs("SYSTEM GHOST: Hi, I am `prevent_interruption()`.\nSYSTEM GHOST: When I am implemented, I will install a signal handler,\nSYSTEM GHOST: and you won't be able to use Ctrl+C anymore :P\n", stderr);
+void prevent_interruption() {
+    struct sigaction sa;
+
+    sa.sa_handler = refuse_to_die;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(1);
+    }
+    
 }
 
 int main(int argc, char *argv[])
@@ -20,12 +33,18 @@ int main(int argc, char *argv[])
   (void)argv;
 
   char path[PATH_MAX];
-  char *home = getenv("HOME");
+char *home = getenv("HOME");
 #ifdef DEBUG
-  home = "."; // So that you could place the config into the CWD
+home = "."; // So that you could place the config into the CWD
 #endif
-  sprintf(path, "%s/%s", (home ? home : "."), WISH_CONFIG);
+sprintf(path, "%s/%s", (home ? home : "."), WISH_CONFIG);
+if (access(path, F_OK) != -1) {
+  // Config file exists in HOME directory
   wish_read_config(path, 1);
+} else {
+  fprintf(stderr, "Could not find %s in HOME directory.\n", WISH_CONFIG);
+}
+
   
   prevent_interruption();
   while(!wish_exit) {
@@ -41,23 +60,39 @@ int main(int argc, char *argv[])
 }
 
 char *super_strdup(const char *s) {
-  // Must be implemented
-  fputs("\nSYSTEM GHOST: did you just call unimplemented `super_strdup`?\n",
-	stderr);
-  return NULL;
+
+    char *x = strdup(s);
+    if (!x) {
+        perror("super_strdup");
+        exit(0);
+    }
+    return x;
+
 }
+
+
 
 void *super_malloc(size_t size) {
-  // Must be implemented
-  fputs("\nSYSTEM GHOST: did you just call unimplemented `super_malloc`?\n",
-	stderr);
-  return NULL;
+
+    void *x = malloc(size);
+    if (!x) {
+        perror("super_malloc");
+        exit(0);
+    }
+    return x;
+
 }
 
+
+
 void *super_realloc(void *ptr, size_t size) {
-  // Must be implemented
-    fputs("\nSYSTEM GHOST: did you just call unimplemented `realloc`?\n",
-	  stderr);
-    return NULL;
+
+    void *x = realloc(ptr, size);
+    if (!x) {
+        perror("super_realloc");
+        abort();
+    }
+    return x;
+
 }
 
