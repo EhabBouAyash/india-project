@@ -1,28 +1,20 @@
 #include <limits.h>
-#include "wish.h"
 #include <signal.h>
 #include <string.h>
-#include <unistd.h>
+#include "wish.h"
 
 int wish_exit = 0;
 
 static void refuse_to_die(int sig)
 {
+  (void)sig; // To make macOS compiler happy
   fputs("Type exit to exit the shell.\n", stderr);
 }
 
-void prevent_interruption() {
-    struct sigaction sa;
-
-    sa.sa_handler = refuse_to_die;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
-        perror("sigaction");
-        exit(1);
-    }
-    
+static void prevent_interruption() {
+  const struct sigaction sa = {.sa_handler = refuse_to_die };
+  if(sigaction(SIGINT, &sa, NULL))
+    perror("sigaction");
 }
 
 int main(int argc, char *argv[])
@@ -33,18 +25,12 @@ int main(int argc, char *argv[])
   (void)argv;
 
   char path[PATH_MAX];
-char *home = getenv("HOME");
+  char *home = getenv("HOME");
 #ifdef DEBUG
-home = "."; // So that you could place the config into the CWD
+  home = "."; // So that you could place the config into the CWD
 #endif
-sprintf(path, "%s/%s", (home ? home : "."), WISH_CONFIG);
-if (access(path, F_OK) != -1) {
-  // Config file exists in HOME directory
+  sprintf(path, "%s/%s", (home ? home : "."), WISH_CONFIG);
   wish_read_config(path, 1);
-} else {
-  fprintf(stderr, "Could not find %s in HOME directory.\n", WISH_CONFIG);
-}
-
   
   prevent_interruption();
   while(!wish_exit) {
@@ -60,39 +46,20 @@ if (access(path, F_OK) != -1) {
 }
 
 char *super_strdup(const char *s) {
-
-    char *x = strdup(s);
-    if (!x) {
-        perror("super_strdup");
-        exit(0);
-    }
-    return x;
-
+  char *s_dup = strdup(s);
+  if(!s_dup) abort();
+  return s_dup;
 }
-
-
 
 void *super_malloc(size_t size) {
-
-    void *x = malloc(size);
-    if (!x) {
-        perror("super_malloc");
-        exit(0);
-    }
-    return x;
-
+  void *s = malloc(size);
+  if(!s) abort();
+  return s;
 }
 
-
-
 void *super_realloc(void *ptr, size_t size) {
-
-    void *x = realloc(ptr, size);
-    if (!x) {
-        perror("super_realloc");
-        abort();
-    }
-    return x;
-
+  void *s = realloc(ptr, size);
+  if(!s) abort();
+  return s;
 }
 
