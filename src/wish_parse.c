@@ -38,7 +38,9 @@ void yyerror(const char* s) {
 }
 
 char *wish_safe_getenv(char *name) {
-  return NULL;
+  char *temp = getenv(name);
+  if(temp==NULL){return "";}
+  return temp;
 }
 
 void wish_assign(char *name, char *value) {
@@ -47,7 +49,12 @@ void wish_assign(char *name, char *value) {
    * The setenv() function returns zero on success,
    * or -1 on error, with errno set to indicate the cause of the error.
    */
-
+    int temp = setenv(name,value,1);
+    if(temp==-1){
+        perror("Cannot set variable.");
+    }
+    free(name);
+    free(value);
 }
 
 // Find the first program on the command line
@@ -85,6 +92,22 @@ prog_t *create_program(arglist_t al)
 
 int handle_child(pid_t pid, int bgmode)
 {
+  int status;
+  if (bgmode==1){
+  	return 0; 
+  }
+  else{
+  	if (WIFEXITED(status)){
+  		waitpid(pid,&status,0);
+  		int ret_value = WEXITSTATUS(status);
+   		char str_value[16];
+    	snprintf(str_value, sizeof(str_value), "%d", ret_value);
+
+    	// Set the environmental variable 
+    	setenv("_", str_value, 1);
+  	}
+  	
+  }
   return 0;
 }
 
@@ -101,7 +124,7 @@ int spawn(prog_t *exe, int bgmode)
     char **args;
     } arglist_t;    
   */
-
+  
   pid_t pid;
   switch(pid = fork()) {
   case -1:
@@ -124,6 +147,10 @@ void free_memory(prog_t *exe)
   for(int i = 0; i < exe->args.size; i++)
     free(exe->args.args[i]);
   free(exe->args.args);
+  free(exe->redirection.in);
+  free(exe->redirection.out1);
+  free(exe->redirection.out2);
   free (exe);
+  
 }
 
