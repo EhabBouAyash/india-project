@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <string.h>
 #include "wish.h"
+#include <unistd.h>
 
 int wish_exit = 0;
 
@@ -29,14 +30,36 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
   home = "."; // So that you could place the config into the CWD
 #endif
+  if (!home){
+  	fprintf(stderr, "home environement variable not set");
+  	exit(1);
+  }
+  
   sprintf(path, "%s/%s", (home ? home : "."), WISH_CONFIG);
-  wish_read_config(path, 1);
+  if (access(path,F_OK)==0){
+  	wish_read_config(path, 1);	
+  }
+  
+  
+  
+  char* default_prompt = WISH_DEFAULT_PROMPT;
+  setenv("SHELL", argv[0], 1);
+  setenv("PS1", WISH_DEFAULT_PROMPT, 1);
+  
   
   prevent_interruption();
+  for (int i=1; i< argc;i++){
+  	if (access(argv[i],F_OK)==-1){
+  		fprintf(stderr, "File %s doesn't exist. ", argv[i]);
+  		exit(1);
+  	}
+  	wish_read_config(argv[i],0);
+  }
   while(!wish_exit) {
     fputs(WISH_DEFAULT_PROMPT, stdout);
     char *line = wish_read_line(stdin);
     if(line) {
+      
       wish_parse_command(line);
       free(line);
     }

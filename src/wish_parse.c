@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include "wish.h"
+#include <string.h>
 
 // https://en.wikipedia.org/wiki/Escape_sequences_in_C#Table_of_escape_sequences
 char *wish_unquote(char * s) {
@@ -127,36 +128,6 @@ static void start(prog_t *exe) {
   execvp(args.args[0], args.args);
   perror(args.args[0]);
 }
-
-int spawn(prog_t *exe, int bgmode)
-{
-  /*
-    typedef struct prog {
-    arglist_t args; // Arguments, including the program name
-    ...
-    } prog_t;
-
-    typedef struct {
-    int size;
-    char **args;
-    } arglist_t;    
-  */
-
-  pid_t pid;
-  switch(pid = fork()) {
-  case -1:
-    perror("fork");
-    return 1;
-    
-  case 0: // Child
-    start(exe);
-    _exit(EXIT_FAILURE); // Do NOT use exit()!
-    
-  default: // Parent
-    return handle_child(pid, bgmode);
-  }
-}
-
 // Find the number of programs on the command line
 static size_t cmd_length(prog_t *exe) {
   int count = 0;
@@ -167,17 +138,88 @@ static size_t cmd_length(prog_t *exe) {
   return count;
 }
 
+int spawn(prog_t *exe, int bgmode) {
+  int num_programs = 0;
+  prog_t *p = exe;
+  while (p != NULL) { // Count the number of programs
+    num_programs++;
+    p = p->prev;
+  }
+
+  int pipefd[num_programs - 1][2]; // One pipe per program pair
+  pid_t pid[num_programs]; // One PID per program
+
+  // Create pipes
+  p = exe;
+  for (int i = num_programs - 1; i > 0; i--) {
+    if (pipe(pipefd[i-1]) == -1) {
+      perror("pipe");
+      return 1;
+    }
+    p = p->prev;
+  }
+
+  // Spawn child processes
+  p = exe;
+  for (int i = num_programs - 1; i > -1; i--) {
+    switch(pid[i] = fork()) {
+      case -1:
+        perror("fork");
+        return 1;
+      
+      case 0: // Child
+        if (i == num_programs - 1) { //we are the last program
+          dup2(pipefd[i-1][0], STDIN_FILENO); // Connect stdin to read end of previous pipe
+        }
+        else if (i != 0 && i<num_programs-1) { // Not first or last program
+          dup2(pipefd[i][1], STDOUT_FILENO); // Connect stdout to write end of pipe
+          dup2(pipefd[i-1][0], STDIN_FILENO); // Connect stdin to read end of previous pipe
+        }
+
+        else { // First program
+          dup2(pipefd[i][1], STDOUT_FILENO); // Connect stdout to write end of pipe
+        }
+		for (int j = 0; j < num_programs - 1; j++) { // Close all pipe ends in child processes
+          close(pipefd[j][0]);
+          close(pipefd[j][1]);
+        } 
+        start(p);
+        _exit(EXIT_FAILURE); // Do NOT use exit()!
+      
+      default: // Parent
+        break;
+    }
+    p = p->prev;
+  }
+
+  // Close all pipe ends
+  for (int i = 0; i < num_programs - 1; i++) {
+    close(pipefd[i][0]);
+    close(pipefd[i][1]);
+  }
+  // Wait for children to terminate if not in background mode
+  if (!bgmode) {
+    for (int i = 0; i < num_programs; i++) {
+      waitpid(pid[i], NULL, 0);
+    }
+  }
+
+  free_memory(exe);
+  return 0;
+}
 void free_memory(prog_t *exe)
 {
-  for(int i = 0; i < exe->args.size; i++)
-    free(exe->args.args[i]);
-  free(exe->args.args);
-  if(exe->redirection.in)
-    free(exe->redirection.in);
-  if(exe->redirection.out1)
-    free(exe->redirection.out1);
-  if(exe->redirection.out2)
-    free(exe->redirection.out2);
-  free (exe);
+  if (exe==NULL){return ;}
+  free_memory(exe->prev);
+  for (int i=0; i<exe->args.size;i++){
+  	free(exe->args.args[i]);
+  }
+  if (exe->redirection.out1 && exe->redirection.out2 && exe->redirection.in){
+  	free(exe->redirection.in);
+  	free(exe->redirection.out1);
+  	free(exe->redirection.out2);
+  }
+  
 }
+
 
